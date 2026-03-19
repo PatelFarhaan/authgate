@@ -22,11 +22,14 @@ server:
 providers:
   - name: github
     enabled: true
+    redirectPath: "/auth/github/callback"
   - name: google
     enabled: false
+    redirectPath: "/auth/google/callback"
   - name: gitlab
     enabled: false
     baseUrl: "https://gitlab.com"
+    redirectPath: "/auth/gitlab/callback"
 
 # -- Name of an existing K8s Secret containing all sensitive env vars.
 # Required keys: SECRET_KEY, DATABASE_URL

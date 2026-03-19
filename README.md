@@ -89,6 +89,9 @@ All configuration is done via environment variables (or a `.env` file).
 |----------|---------|-------------|
 | `SECRET_KEY` | `change-me-in-production` | **Must change.** Used for signing state tokens |
 | `BASE_URL` | *(auto-detected)* | Public URL of AuthGate (e.g. `http://localhost:8000` or `https://auth.example.com`). Used to build OAuth callback URIs. When empty, falls back to the request's base URL |
+| `GITHUB_REDIRECT_PATH` | *(required if GitHub enabled)* | Callback path for GitHub OAuth (e.g. `/auth/github/callback`, `/github/redirect`, `/callback`) |
+| `GOOGLE_REDIRECT_PATH` | *(required if Google enabled)* | Callback path for Google OAuth (e.g. `/auth/google/callback`, `/login/complete`) |
+| `GITLAB_REDIRECT_PATH` | *(required if GitLab enabled)* | Callback path for GitLab OAuth (e.g. `/auth/gitlab/callback`) |
 | `ALLOWED_REDIRECTS` | *(required)* | Comma-separated glob patterns for valid redirect URLs (e.g. `http://localhost:3000/*`) |
 | `CORS_ORIGINS` | *(required)* | Comma-separated allowed CORS origins (e.g. `http://localhost:3000`) |
 
@@ -130,20 +133,20 @@ Configure one or more. Only providers with both client ID and secret will appear
 
 1. Go to **Settings > Developer settings > OAuth Apps > New OAuth App**
 2. Set **Homepage URL** to your AuthGate URL (e.g., `http://localhost:8000`)
-3. Set **Authorization callback URL** to `http://localhost:8000/auth/github/callback`
+3. Set **Authorization callback URL** to `{BASE_URL}{GITHUB_REDIRECT_PATH}` (e.g. `http://localhost:8000/auth/github/callback`)
 4. Copy the Client ID and Client Secret into your `.env`
 
 ### Google
 
 1. Go to **Google Cloud Console > APIs & Services > Credentials**
 2. Create an **OAuth 2.0 Client ID** (Web application)
-3. Add **Authorized redirect URI**: `http://localhost:8000/auth/google/callback`
+3. Add **Authorized redirect URI**: `{BASE_URL}{GOOGLE_REDIRECT_PATH}` (e.g. `http://localhost:8000/auth/google/callback`)
 4. Copy the Client ID and Client Secret into your `.env`
 
 ### GitLab
 
 1. Go to **User Settings > Applications**
-2. Set **Redirect URI** to `http://localhost:8000/auth/gitlab/callback`
+2. Set **Redirect URI** to `{BASE_URL}{GITLAB_REDIRECT_PATH}` (e.g. `http://localhost:8000/auth/gitlab/callback`)
 3. Select scope: `read_user`
 4. Copy the Application ID and Secret into your `.env`
 
@@ -213,7 +216,7 @@ Use the public key to verify the JWT signature in your app without network calls
 |----------|--------|-------------|
 | `/login` | GET | Branded login page (pass `?redirect_url=...`) |
 | `/auth/{provider}` | GET | Start OAuth flow (`github`, `google`, `gitlab`) |
-| `/auth/{provider}/callback` | GET | OAuth callback (handled automatically) |
+| `{PROVIDER_REDIRECT_PATH}` | GET | OAuth callback — path set via env var per provider |
 | `/api/verify` | GET | Verify JWT, returns `{ valid, user }` |
 | `/api/userinfo` | GET | Get authenticated user profile |
 | `/.well-known/jwks.json` | GET | Public keys for JWT verification |

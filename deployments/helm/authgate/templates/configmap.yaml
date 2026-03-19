@@ -25,7 +25,12 @@ data:
   COOKIE_DOMAIN: {{ .Values.jwt.cookieDomain | quote }}
   COOKIE_SECURE: {{ .Values.jwt.cookieSecure | quote }}
   {{- range .Values.providers }}
-  {{- if and .enabled (eq .name "gitlab") .baseUrl }}
+  {{- if .enabled }}
+  {{- if .redirectPath }}
+  {{ .name | upper }}_REDIRECT_PATH: {{ .redirectPath | quote }}
+  {{- end }}
+  {{- if and (eq .name "gitlab") .baseUrl }}
   GITLAB_BASE_URL: {{ .baseUrl | quote }}
+  {{- end }}
   {{- end }}
   {{- end }}

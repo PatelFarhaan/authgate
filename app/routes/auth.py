@@ -13,11 +13,34 @@ from app.oauth import get_enabled_providers
 
 router = APIRouter()
 
+PROVIDER_REDIRECT_PATHS: dict[str, str] = {}
+
+
+def _init_redirect_paths():
+    mapping = {
+        "github": settings.GITHUB_REDIRECT_PATH,
+        "google": settings.GOOGLE_REDIRECT_PATH,
+        "gitlab": settings.GITLAB_REDIRECT_PATH,
+    }
+    for name, path in mapping.items():
+        if path:
+            PROVIDER_REDIRECT_PATHS[name] = "/" + path.strip("/")
+
+
+_init_redirect_paths()
+
 
 def _get_base_url(request: Request) -> str:
     if settings.BASE_URL:
         return settings.BASE_URL.rstrip("/")
     return str(request.base_url).rstrip("/")
+
+
+def _get_callback_url(request: Request, provider: str) -> str:
+    path = PROVIDER_REDIRECT_PATHS.get(provider)
+    if not path:
+        return ""
+    return _get_base_url(request) + path
 
 
 def _validate_redirect(url: str) -> bool:
@@ -33,19 +56,21 @@ async def auth_start(provider: str, request: Request):
     if provider not in providers:
         return RedirectResponse("/login?error=invalid_provider")
 
+    if provider not in PROVIDER_REDIRECT_PATHS:
+        return RedirectResponse("/login?error=missing_redirect_path")
+
     redirect_url = request.query_params.get("redirect_url", "")
     if redirect_url and not _validate_redirect(redirect_url):
         return RedirectResponse("/login?error=invalid_redirect")
 
-    state = jwt_handler.create_state_token(redirect_url)
-    callback_uri = _get_base_url(request) + f"/auth/{provider}/callback"
+    state = jwt_handler.create_state_token(redirect_url, provider)
+    callback_uri = _get_callback_url(request, provider)
     authorize_url = providers[provider].get_authorize_url(state, callback_uri)
 
     return RedirectResponse(authorize_url)
 
 
-@router.get("/auth/{provider}/callback")
-async def auth_callback(provider: str, request: Request):
+async def _handle_callback(request: Request, provider: str):
     providers = get_enabled_providers()
     if provider not in providers:
         return RedirectResponse("/login?error=invalid_provider")
@@ -59,11 +84,13 @@ async def auth_callback(provider: str, request: Request):
     if not code or not state:
         return RedirectResponse("/login?error=missing_params")
 
-    redirect_url = jwt_handler.verify_state_token(state)
-    if redirect_url is None:
+    state_data = jwt_handler.verify_state_token(state)
+    if state_data is None:
         return RedirectResponse("/login?error=invalid_state")
 
-    callback_uri = _get_base_url(request) + f"/auth/{provider}/callback"
+    redirect_url = state_data.get("redirect_url", "")
+
+    callback_uri = _get_callback_url(request, provider)
 
     try:
         access_token = await providers[provider].get_token(code, callback_uri)
@@ -118,3 +145,13 @@ async def auth_callback(provider: str, request: Request):
         domain=settings.COOKIE_DOMAIN or None,
     )
     return resp
+
+
+for _provider_name, _path in PROVIDER_REDIRECT_PATHS.items():
+    def _make_handler(pname: str):
+        async def handler(request: Request):
+            return await _handle_callback(request, pname)
+        handler.__name__ = f"callback_{pname}"
+        return handler
+
+    router.get(_path)(_make_handler(_provider_name))

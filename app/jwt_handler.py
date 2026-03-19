@@ -91,17 +91,17 @@ class JWTHandler:
         except jwt.PyJWTError:
             return None
 
-    def create_state_token(self, redirect_url: str) -> str:
+    def create_state_token(self, redirect_url: str, provider: str = "") -> str:
         payload = {
             "redirect_url": redirect_url,
+            "provider": provider,
             "exp": datetime.now(timezone.utc) + timedelta(minutes=10),
         }
         return jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
-    def verify_state_token(self, token: str) -> str | None:
+    def verify_state_token(self, token: str) -> dict | None:
         try:
-            data = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-            return data.get("redirect_url", "")
+            return jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         except jwt.PyJWTError:
             return None
 

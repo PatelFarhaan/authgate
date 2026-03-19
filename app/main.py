@@ -14,6 +14,7 @@ from app.jwt_handler import jwt_handler
 from app.oauth import PROVIDER_DISPLAY, get_enabled_providers, init_providers
 from app.routes import api, auth, health
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",

@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     BASE_URL: str = ""
+    GITHUB_REDIRECT_PATH: str = ""
+    GOOGLE_REDIRECT_PATH: str = ""
+    GITLAB_REDIRECT_PATH: str = ""
     SECRET_KEY: str = "change-me-in-production"
     ALLOWED_REDIRECTS: str = ""
     CORS_ORIGINS: str = ""
