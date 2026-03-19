@@ -34,10 +34,13 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
+            # v1.2.3 → 1.2.3, 1.2, 1
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=sha,prefix=
+            type=semver,pattern={{major}}
+            # main branch → latest + sha
             type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=,enable={{is_default_branch}}
 
       - uses: docker/build-push-action@v6
         with:
@@ -83,4 +86,6 @@ jobs:
         run: helm package deployments/helm/authgate --destination .helm-pkg
 
       - name: Push to GHCR
-        run: helm push .helm-pkg/authgate-${{ steps.version.outputs.version }}.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts
+        run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          helm push .helm-pkg/authgate-${{ steps.version.outputs.version }}.tgz oci://${{ env.REGISTRY }}/${OWNER}/charts
