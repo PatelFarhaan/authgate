@@ -15,6 +15,7 @@ data:
   APP_LOGO_URL: {{ .Values.branding.appLogoUrl | quote }}
   APP_TAGLINE: {{ .Values.branding.appTagline | quote }}
   ACCENT_COLOR: {{ .Values.branding.accentColor | quote }}
+  BASE_URL: {{ .Values.server.baseUrl | quote }}
   ALLOWED_REDIRECTS: {{ .Values.server.allowedRedirects | quote }}
   CORS_ORIGINS: {{ .Values.server.corsOrigins | quote }}
   ENABLED_PROVIDERS: {{ join "," $enabled | quote }}

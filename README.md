@@ -88,14 +88,15 @@ All configuration is done via environment variables (or a `.env` file).
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `SECRET_KEY` | `change-me-in-production` | **Must change.** Used for signing state tokens |
-| `ALLOWED_REDIRECTS` | `http://localhost:3000/*` | Comma-separated glob patterns for valid redirect URLs |
-| `CORS_ORIGINS` | `http://localhost:3000` | Comma-separated allowed CORS origins |
+| `BASE_URL` | *(auto-detected)* | Public URL of AuthGate (e.g. `http://localhost:8000` or `https://auth.example.com`). Used to build OAuth callback URIs. When empty, falls back to the request's base URL |
+| `ALLOWED_REDIRECTS` | *(required)* | Comma-separated glob patterns for valid redirect URLs (e.g. `http://localhost:3000/*`) |
+| `CORS_ORIGINS` | *(required)* | Comma-separated allowed CORS origins (e.g. `http://localhost:3000`) |
 
 ### Database
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DATABASE_URL` | `postgresql+asyncpg://authgate:authgate@localhost:5432/authgate` | Async PostgreSQL connection string |
+| `DATABASE_URL` | *(required)* | Async PostgreSQL connection string (e.g. `postgresql+asyncpg://user:pass@host:5432/authgate`) |
 
 ### JWT
 

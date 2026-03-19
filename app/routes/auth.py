@@ -14,8 +14,16 @@ from app.oauth import get_enabled_providers
 router = APIRouter()
 
 
+def _get_base_url(request: Request) -> str:
+    if settings.BASE_URL:
+        return settings.BASE_URL.rstrip("/")
+    return str(request.base_url).rstrip("/")
+
+
 def _validate_redirect(url: str) -> bool:
-    allowed = [p.strip() for p in settings.ALLOWED_REDIRECTS.split(",")]
+    allowed = [p.strip() for p in settings.ALLOWED_REDIRECTS.split(",") if p.strip()]
+    if not allowed:
+        return False
     return any(fnmatch.fnmatch(url, pattern) for pattern in allowed)
 
 
@@ -30,7 +38,7 @@ async def auth_start(provider: str, request: Request):
         return RedirectResponse("/login?error=invalid_redirect")
 
     state = jwt_handler.create_state_token(redirect_url)
-    callback_uri = str(request.base_url).rstrip("/") + f"/auth/{provider}/callback"
+    callback_uri = _get_base_url(request) + f"/auth/{provider}/callback"
     authorize_url = providers[provider].get_authorize_url(state, callback_uri)
 
     return RedirectResponse(authorize_url)
@@ -55,7 +63,7 @@ async def auth_callback(provider: str, request: Request):
     if redirect_url is None:
         return RedirectResponse("/login?error=invalid_state")
 
-    callback_uri = str(request.base_url).rstrip("/") + f"/auth/{provider}/callback"
+    callback_uri = _get_base_url(request) + f"/auth/{provider}/callback"
 
     try:
         access_token = await providers[provider].get_token(code, callback_uri)

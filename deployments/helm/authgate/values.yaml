@@ -13,6 +13,7 @@ branding:
   accentColor: "#6366f1"
 
 server:
+  baseUrl: ""
   allowedRedirects: "https://app.example.com/*"
   corsOrigins: "https://app.example.com"
 

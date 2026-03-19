@@ -9,11 +9,12 @@ class Settings(BaseSettings):
 
     HOST: str = "0.0.0.0"
     PORT: int = 8000
+    BASE_URL: str = ""
     SECRET_KEY: str = "change-me-in-production"
-    ALLOWED_REDIRECTS: str = "http://localhost:3000/*"
-    CORS_ORIGINS: str = "http://localhost:3000"
+    ALLOWED_REDIRECTS: str = ""
+    CORS_ORIGINS: str = ""
 
-    DATABASE_URL: str = "postgresql+asyncpg://authgate:authgate@localhost:5432/authgate"
+    DATABASE_URL: str = ""
 
     JWT_EXPIRY_HOURS: int = 24
     JWT_KEYS_DIR: str = "./keys"
