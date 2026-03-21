@@ -24,6 +24,9 @@ data:
   COOKIE_NAME: {{ .Values.jwt.cookieName | quote }}
   COOKIE_DOMAIN: {{ .Values.jwt.cookieDomain | quote }}
   COOKIE_SECURE: {{ .Values.jwt.cookieSecure | quote }}
+  {{- if .Values.customLoginTemplate.existingConfigMap }}
+  CUSTOM_LOGIN_TEMPLATE: "/app/custom-templates/login.html"
+  {{- end }}
   {{- range .Values.providers }}
   {{- if .enabled }}
   {{- if .redirectPath }}

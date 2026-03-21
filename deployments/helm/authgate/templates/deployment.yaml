@@ -59,6 +59,11 @@ spec:
               mountPath: /app/keys
             - name: tmp
               mountPath: /tmp
+            {{- if .Values.customLoginTemplate.existingConfigMap }}
+            - name: custom-login-template
+              mountPath: /app/custom-templates
+              readOnly: true
+            {{- end }}
           livenessProbe:
             httpGet:
               path: /health
@@ -95,3 +100,8 @@ spec:
           {{- end }}
         - name: tmp
           emptyDir: {}
+        {{- if .Values.customLoginTemplate.existingConfigMap }}
+        - name: custom-login-template
+          configMap:
+            name: {{ .Values.customLoginTemplate.existingConfigMap }}
+        {{- end }}

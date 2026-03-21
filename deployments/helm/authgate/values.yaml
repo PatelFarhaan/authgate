@@ -12,6 +12,16 @@ branding:
   appTagline: "Secure authentication for your apps"
   accentColor: "#6366f1"
 
+# -- Custom login page HTML (Jinja2 template).
+# Provide the name of an existing ConfigMap that contains a `login.html` key.
+# The ConfigMap is mounted and used instead of the built-in login page.
+# Available Jinja2 variables in your template:
+#   {{ app_name }}, {{ app_logo_url }}, {{ app_tagline }}, {{ accent_color }}
+#   {{ providers }} - list of { id, name, url } dicts
+#   {{ error }}, {{ authenticated }}
+customLoginTemplate:
+  existingConfigMap: ""
+
 server:
   baseUrl: ""
   allowedRedirects: "https://app.example.com/*"

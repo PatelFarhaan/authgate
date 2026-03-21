@@ -51,9 +51,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-templates = Jinja2Templates(
-    directory=os.path.join(os.path.dirname(__file__), "templates")
-)
+_builtin_templates_dir = os.path.join(os.path.dirname(__file__), "templates")
+templates = Jinja2Templates(directory=_builtin_templates_dir)
 
 app.include_router(auth.router)
 app.include_router(api.router)
@@ -90,19 +89,25 @@ async def login_page(request: Request):
         for name in providers
     ]
 
-    return templates.TemplateResponse(
-        "login.html",
-        {
-            "request": request,
-            "app_name": settings.APP_NAME,
-            "app_logo_url": settings.APP_LOGO_URL,
-            "app_tagline": settings.APP_TAGLINE,
-            "accent_color": settings.ACCENT_COLOR,
-            "providers": provider_list,
-            "error": error,
-            "authenticated": authenticated,
-        },
-    )
+    template_context = {
+        "request": request,
+        "app_name": settings.APP_NAME,
+        "app_logo_url": settings.APP_LOGO_URL,
+        "app_tagline": settings.APP_TAGLINE,
+        "accent_color": settings.ACCENT_COLOR,
+        "providers": provider_list,
+        "error": error,
+        "authenticated": authenticated,
+    }
+
+    custom_path = settings.CUSTOM_LOGIN_TEMPLATE
+    if custom_path and os.path.isfile(custom_path):
+        custom_dir = os.path.dirname(os.path.abspath(custom_path))
+        custom_name = os.path.basename(custom_path)
+        custom_templates = Jinja2Templates(directory=custom_dir)
+        return custom_templates.TemplateResponse(custom_name, template_context)
+
+    return templates.TemplateResponse("login.html", template_context)
 
 
 @app.get("/logout")

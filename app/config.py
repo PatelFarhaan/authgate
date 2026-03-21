@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     APP_LOGO_URL: str = ""
     APP_TAGLINE: str = "Secure authentication for your apps"
     ACCENT_COLOR: str = "#6366f1"
+    CUSTOM_LOGIN_TEMPLATE: str = ""
 
     HOST: str = "0.0.0.0"
     PORT: int = 8000
