@@ -1,17 +1,19 @@
 services:
   authgate:
-    build: ../../
+    image: ghcr.io/patelfarhaan/authgate:1.0.5
     ports:
       - "8000:8000"
     env_file:
       - ../../.env
     environment:
       DATABASE_URL: postgresql+asyncpg://authgate:authgate@postgres:5432/authgate
+      CUSTOM_LOGIN_TEMPLATE: /app/custom-templates/login.html
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
       - authgate-keys:/app/keys
+      - ./custom-templates:/app/custom-templates:ro
     restart: unless-stopped
 
   postgres:

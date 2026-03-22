@@ -69,8 +69,7 @@ async def jwks():
     return jwt_handler.get_jwks()
 
 
-@app.get("/login", response_class=HTMLResponse)
-async def login_page(request: Request):
+def _build_login_context(request: Request):
     redirect_url = request.query_params.get("redirect_url", "")
     error = request.query_params.get("error", "")
     authenticated = request.query_params.get("authenticated", "")
@@ -89,7 +88,7 @@ async def login_page(request: Request):
         for name in providers
     ]
 
-    template_context = {
+    return {
         "request": request,
         "app_name": settings.APP_NAME,
         "app_logo_url": settings.APP_LOGO_URL,
@@ -100,14 +99,36 @@ async def login_page(request: Request):
         "authenticated": authenticated,
     }
 
+
+def _render_custom_template(filename: str, context: dict):
+    custom_dir = os.environ.get("CUSTOM_TEMPLATES_DIR", "")
+    if not custom_dir:
+        custom_path = settings.CUSTOM_LOGIN_TEMPLATE
+        if custom_path:
+            custom_dir = os.path.dirname(os.path.abspath(custom_path))
+    if custom_dir and os.path.isfile(os.path.join(custom_dir, filename)):
+        return Jinja2Templates(directory=custom_dir).TemplateResponse(filename, context)
+    return None
+
+
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    ctx = _build_login_context(request)
     custom_path = settings.CUSTOM_LOGIN_TEMPLATE
     if custom_path and os.path.isfile(custom_path):
         custom_dir = os.path.dirname(os.path.abspath(custom_path))
         custom_name = os.path.basename(custom_path)
-        custom_templates = Jinja2Templates(directory=custom_dir)
-        return custom_templates.TemplateResponse(custom_name, template_context)
+        return Jinja2Templates(directory=custom_dir).TemplateResponse(custom_name, ctx)
+    return templates.TemplateResponse("login.html", ctx)
 
-    return templates.TemplateResponse("login.html", template_context)
+
+@app.get("/login{design_num}", response_class=HTMLResponse)
+async def login_variant(request: Request, design_num: int):
+    ctx = _build_login_context(request)
+    resp = _render_custom_template(f"v{design_num}.html", ctx)
+    if resp:
+        return resp
+    return templates.TemplateResponse("login.html", ctx)
 
 
 @app.get("/logout")
