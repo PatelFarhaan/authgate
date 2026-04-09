@@ -124,14 +124,16 @@ def _build_login_context(request: Request):
     }
 
 
-def _render_custom_template(filename: str, context: dict):
+def _render_custom_template(request: Request, filename: str, context: dict):
     custom_dir = os.environ.get("CUSTOM_TEMPLATES_DIR", "")
     if not custom_dir:
         custom_path = settings.CUSTOM_LOGIN_TEMPLATE
         if custom_path:
             custom_dir = os.path.dirname(os.path.abspath(custom_path))
     if custom_dir and os.path.isfile(os.path.join(custom_dir, filename)):
-        return Jinja2Templates(directory=custom_dir).TemplateResponse(filename, context)
+        return Jinja2Templates(directory=custom_dir).TemplateResponse(
+            request, filename, context
+        )
     return None
 
 
@@ -142,17 +144,19 @@ async def login_page(request: Request):
     if custom_path and os.path.isfile(custom_path):
         custom_dir = os.path.dirname(os.path.abspath(custom_path))
         custom_name = os.path.basename(custom_path)
-        return Jinja2Templates(directory=custom_dir).TemplateResponse(custom_name, ctx)
-    return templates.TemplateResponse("login.html", ctx)
+        return Jinja2Templates(directory=custom_dir).TemplateResponse(
+            request, custom_name, ctx
+        )
+    return templates.TemplateResponse(request, "login.html", ctx)
 
 
 @app.get("/login{design_num}", response_class=HTMLResponse)
 async def login_variant(request: Request, design_num: int):
     ctx = _build_login_context(request)
-    resp = _render_custom_template(f"v{design_num}.html", ctx)
+    resp = _render_custom_template(request, f"v{design_num}.html", ctx)
     if resp:
         return resp
-    return templates.TemplateResponse("login.html", ctx)
+    return templates.TemplateResponse(request, "login.html", ctx)
 
 
 @app.get("/logout")
