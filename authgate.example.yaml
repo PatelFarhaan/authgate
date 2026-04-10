@@ -22,7 +22,7 @@ app:
   logoUrl: ""                                      # URL to an external logo image
   logoPath: ""                                     # Local file path; served at /static/logo if set
   tagline: Secure authentication for your apps     # Subtitle on the login page
-  accentColor: "#6366f1"                           # Primary accent color (hex)
+  accentColor: "#0060F0"                           # Primary accent color (hex)
   defaultTheme: light                              # light | dark | auto (system preference)
   customLoginTemplate: ""                          # Path to a custom Jinja2 login template
 

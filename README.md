@@ -5,6 +5,12 @@
 > Plug-and-play authentication gateway — deploy as a sidecar, add OAuth to any app in minutes.
 
 <p align="center">
+  <img src="./docs/images/login-light.png" alt="AuthGate Login — Light Mode" width="46%" />
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="./docs/images/login-dark.png" alt="AuthGate Login — Dark Mode" width="46%" />
+</p>
+
+<p align="center">
   <img src="./excalidraw/architecture.svg" alt="AuthGate Architecture" />
 </p>
 

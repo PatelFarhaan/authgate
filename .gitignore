@@ -9,6 +9,7 @@ build/
 venv/
 env/
 .env
+authgate.yaml
 keys/
 *.pem
 .idea/

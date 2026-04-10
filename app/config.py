@@ -51,7 +51,7 @@ class Settings:
     APP_LOGO_URL: str = ""
     APP_LOGO_PATH: str = ""
     APP_TAGLINE: str = "Secure authentication for your apps"
-    ACCENT_COLOR: str = "#6366f1"
+    ACCENT_COLOR: str = "#0060F0"
     DEFAULT_THEME: str = "light"
     CUSTOM_LOGIN_TEMPLATE: str = ""
 
