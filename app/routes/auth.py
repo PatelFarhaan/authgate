@@ -110,6 +110,8 @@ async def _handle_callback(request: Request, provider: str):
         if user and not user.is_active:
             return RedirectResponse("/login?error=account_disabled")
 
+        is_new_user = user is None
+
         if user:
             user.last_login_at = datetime.now(timezone.utc)
             user.name = oauth_user.name or user.name
@@ -151,6 +153,8 @@ async def _handle_callback(request: Request, provider: str):
     if redirect_url:
         separator = "&" if "?" in redirect_url else "?"
         target = f"{redirect_url}{separator}token={token}"
+        if is_new_user:
+            target += "&new_user=true"
     else:
         target = "/login?authenticated=true"
 
