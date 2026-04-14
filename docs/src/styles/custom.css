@@ -84,6 +84,21 @@
     Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   --sl-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
     "Liberation Mono", monospace;
+
+  /* Content column width — fully responsive:
+     - Max ~1072px on wide screens (readable line length)
+     - Scales down via min() to fit narrower viewports with sidebar + TOC
+     - On narrow screens, Starlight's own media queries collapse the layout */
+  --sl-content-width: min(67rem, 100vw - 2rem);
+
+  /* Center content within its pane on all viewports. Starlight defaults
+     to `auto 0` when both sidebar and TOC are present; `auto` on both
+     sides distributes remaining space evenly. */
+  --sl-content-margin-inline: auto;
+}
+
+[data-has-sidebar][data-has-toc] {
+  --sl-content-margin-inline: auto;
 }
 
 /* Code blocks — GitHub-esque */
