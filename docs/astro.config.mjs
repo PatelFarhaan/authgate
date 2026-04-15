@@ -3,7 +3,7 @@ import starlight from '@astrojs/starlight';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://patelfarhaan.github.io',
+  site: 'https://gatesuite.github.io',
   base: '/authgate',
   integrations: [
     starlight({
@@ -27,10 +27,10 @@ export default defineConfig({
         },
       ],
       social: [
-        { icon: 'github', label: 'GitHub', href: 'https://github.com/PatelFarhaan/authgate' },
+        { icon: 'github', label: 'GitHub', href: 'https://github.com/gatesuite/authgate' },
       ],
       editLink: {
-        baseUrl: 'https://github.com/PatelFarhaan/authgate/edit/main/docs/',
+        baseUrl: 'https://github.com/gatesuite/authgate/edit/main/docs/',
       },
       sidebar: [
         {

@@ -8,7 +8,7 @@ description: Deploy AuthGate via Docker Compose or Kubernetes (Helm).
 The repo ships a zero-config root `docker-compose.yml` that bundles AuthGate + PostgreSQL:
 
 ```bash
-curl -O https://raw.githubusercontent.com/PatelFarhaan/authgate/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/gatesuite/authgate/main/docker-compose.yml
 docker compose up -d
 ```
 
@@ -47,20 +47,20 @@ For a cleaner setup, use an `authgate.yaml` config file with `$VAR` references m
 **Step 2: Install the chart**:
 
 ```bash
-helm install authgate oci://ghcr.io/patelfarhaan/charts/authgate \
+helm install authgate oci://ghcr.io/gatesuite/charts/authgate \
   --set existingSecret=authgate-secrets
 ```
 
 Or use a `values.yaml` override:
 
 ```bash
-helm install authgate oci://ghcr.io/patelfarhaan/charts/authgate -f my-values.yaml
+helm install authgate oci://ghcr.io/gatesuite/charts/authgate -f my-values.yaml
 ```
 
 To install from source instead:
 
 ```bash
-git clone https://github.com/PatelFarhaan/authgate.git
+git clone https://github.com/gatesuite/authgate.git
 helm install authgate ./authgate/deployments/helm/authgate -f my-values.yaml
 ```
 

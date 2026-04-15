@@ -221,7 +221,7 @@ spec:
     spec:
       containers:
         - name: authgate
-          image: ghcr.io/patelfarhaan/authgate:latest
+          image: ghcr.io/gatesuite/authgate:latest
           env:
             - name: AUTHGATE_CONFIG
               value: /etc/authgate/authgate.yaml

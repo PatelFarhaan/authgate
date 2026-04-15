@@ -8,13 +8,13 @@ AuthGate is a ~50MB container. The fastest path is the zero-config docker-compos
 ## One-command deploy
 
 ```bash
-curl -O https://raw.githubusercontent.com/PatelFarhaan/authgate/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/gatesuite/authgate/main/docker-compose.yml
 docker compose up -d
 ```
 
 Open **http://localhost:8000/login** — you'll see the branded login page.
 
-**That's it.** No config files to create, no repo to clone. Postgres is bundled in the same stack. The published `ghcr.io/patelfarhaan/authgate:latest` image is used.
+**That's it.** No config files to create, no repo to clone. Postgres is bundled in the same stack. The published `ghcr.io/gatesuite/authgate:latest` image is used.
 
 ## Enabling OAuth providers
 
@@ -37,21 +37,21 @@ See [OAuth Providers](/authgate/providers/) for step-by-step instructions to get
 
 ## Pinning a version
 
-By default the compose uses `ghcr.io/patelfarhaan/authgate:latest`. To pin to a specific release:
+By default the compose uses `ghcr.io/gatesuite/authgate:latest`. To pin to a specific release:
 
 ```bash
 export AUTHGATE_VERSION=2.0.0
 docker compose up -d
 ```
 
-See the [GitHub Releases page](https://github.com/PatelFarhaan/authgate/releases) for available versions.
+See the [GitHub Releases page](https://github.com/gatesuite/authgate/releases) for available versions.
 
 ## For contributors: build from source
 
 If you're iterating on AuthGate's code, use the contributor-facing compose at `deployments/docker-compose/` which builds from the local `Dockerfile`:
 
 ```bash
-git clone https://github.com/PatelFarhaan/authgate.git
+git clone https://github.com/gatesuite/authgate.git
 cd authgate/deployments/docker-compose
 docker compose up -d --build
 ```

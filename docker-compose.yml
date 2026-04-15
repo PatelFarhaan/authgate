@@ -17,7 +17,7 @@
 
 services:
   authgate:
-    image: ghcr.io/patelfarhaan/authgate:${AUTHGATE_VERSION:-latest}
+    image: ghcr.io/gatesuite/authgate:${AUTHGATE_VERSION:-latest}
     ports:
       - "8000:8000"
     environment:

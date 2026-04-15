@@ -87,13 +87,13 @@ AuthGate keeps dependencies minimal:
 - `jinja2` — login template rendering
 - `pyyaml` — config parsing
 
-Periodic dependency updates happen via release-please — check the [GitHub Releases](https://github.com/PatelFarhaan/authgate/releases) for the changelog.
+Periodic dependency updates happen via release-please — check the [GitHub Releases](https://github.com/gatesuite/authgate/releases) for the changelog.
 
 ## Reporting security issues
 
 **Please report security vulnerabilities privately.** Two options:
 
-1. **GitHub Security Advisory** (preferred): [Open a draft advisory](https://github.com/PatelFarhaan/authgate/security/advisories/new)
+1. **GitHub Security Advisory** (preferred): [Open a draft advisory](https://github.com/gatesuite/authgate/security/advisories/new)
 2. Email the maintainer
 
 Do **not** open public issues or PRs for undisclosed vulnerabilities.

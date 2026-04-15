@@ -71,13 +71,13 @@ A common question — both handle OAuth, but they solve different problems:
 ### One-command deploy (recommended)
 
 ```bash
-curl -O https://raw.githubusercontent.com/PatelFarhaan/authgate/main/docker-compose.yml
+curl -O https://raw.githubusercontent.com/gatesuite/authgate/main/docker-compose.yml
 docker compose up -d
 ```
 
 Open **http://localhost:8000/login** — you'll see the branded login page.
 
-**That's it.** No config files to create, no repo to clone. Postgres is bundled in the same stack. The published `ghcr.io/patelfarhaan/authgate:latest` image is used.
+**That's it.** No config files to create, no repo to clone. Postgres is bundled in the same stack. The published `ghcr.io/gatesuite/authgate:latest` image is used.
 
 To enable OAuth providers, set credentials before `up`:
 
@@ -98,7 +98,7 @@ docker compose up -d
 ### For contributors: build from source
 
 ```bash
-git clone https://github.com/PatelFarhaan/authgate.git
+git clone https://github.com/gatesuite/authgate.git
 cd authgate/deployments/docker-compose
 docker compose up -d --build
 ```
