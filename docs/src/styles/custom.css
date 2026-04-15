@@ -123,3 +123,21 @@ table th {
 :root[data-theme='light'] table th {
   background: var(--sl-color-gray-7);
 }
+
+/* ── Header: center the search bar in the viewport ────────────────
+   Starlight's default grid is `minmax(sidebar-width, auto) 1fr auto` —
+   asymmetric, so the search ends up left-of-center. Replace with
+   `1fr auto 1fr`: the search (middle, auto-sized) is surrounded by
+   equal flex space on both sides. Title aligns left in its column,
+   icons align right in theirs. */
+@media (min-width: 50rem) {
+  header .header {
+    grid-template-columns: 1fr minmax(20rem, 28rem) 1fr !important;
+  }
+  header .header > .title-wrapper {
+    justify-self: start;
+  }
+  header .header > .right-group {
+    justify-self: end;
+  }
+}

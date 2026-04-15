@@ -13,6 +13,19 @@ export default defineConfig({
         src: './src/assets/logo.svg',
       },
       customCss: ['./src/styles/custom.css'],
+      head: [
+        {
+          tag: 'script',
+          content: `
+            document.addEventListener('DOMContentLoaded', () => {
+              document.querySelectorAll('.social-icons a[href^="http"]').forEach(a => {
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+              });
+            });
+          `,
+        },
+      ],
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/PatelFarhaan/authgate' },
       ],
