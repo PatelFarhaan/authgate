@@ -39,9 +39,10 @@ docs-logs: ## Tail docs container logs
 # Postgres data and JWT keys are destroyed. Re-running app-up will
 # generate fresh keys and an empty DB.
 
-clean: ## Wipe everything — containers, volumes, caches, keys
+clean: ## Wipe everything — containers, volumes, caches, keys, lockfiles
 	docker compose down -v --remove-orphans 2>/dev/null || true
 	cd docs && docker compose down -v --remove-orphans 2>/dev/null || true
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name "*.pyc" -delete 2>/dev/null || true
 	rm -rf keys/
+	rm -f docs/package-lock.json

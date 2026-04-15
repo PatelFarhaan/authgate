@@ -6,7 +6,7 @@
 
 services:
   docs:
-    image: node:20-alpine
+    image: node:22-alpine
     working_dir: /app
     ports:
       - "4321:4321"
