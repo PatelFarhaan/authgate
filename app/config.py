@@ -5,6 +5,7 @@ Loads configuration from a YAML file (authgate.yaml or path set by AUTHGATE_CONF
 Supports $VAR syntax in string values to read from environment variables.
 """
 
+import logging as _logging
 import os
 import re
 import sys
@@ -195,12 +196,10 @@ def _load_settings() -> Settings:
     config_path = os.environ.get("AUTHGATE_CONFIG", "authgate.yaml")
 
     if not Path(config_path).is_file():
-        print(f"ERROR: Config file not found: {config_path}", file=sys.stderr)
-        print(
-            "Create an authgate.yaml or set AUTHGATE_CONFIG to the correct path.",
-            file=sys.stderr,
+        raise FileNotFoundError(
+            f"Config file not found: {config_path}. "
+            "Create an authgate.yaml or set AUTHGATE_CONFIG to the correct path."
         )
-        sys.exit(1)
 
     with open(config_path, "r") as f:
         raw = yaml.safe_load(f) or {}
@@ -209,4 +208,58 @@ def _load_settings() -> Settings:
     return _settings_from_yaml(resolved)
 
 
-settings = _load_settings()
+try:
+    settings = _load_settings()
+except FileNotFoundError as e:
+    print(f"ERROR: {e}", file=sys.stderr)
+    sys.exit(1)
+
+
+_reload_logger = _logging.getLogger("authgate.config")
+
+# Hot reload is enabled by default so local dev works out of the box.
+# Set AUTHGATE_HOT_RELOAD=0 in production to skip per-request file reads
+# and rely on restart-on-deploy instead.
+_HOT_RELOAD: bool = os.environ.get("AUTHGATE_HOT_RELOAD", "1").lower() not in (
+    "0",
+    "false",
+)
+
+_reload_cache: Settings | None = None
+_reload_snapshot: bytes = b""
+
+
+def reload_settings() -> Settings:
+    """Return settings, optionally re-parsing the config file on change.
+
+    When AUTHGATE_HOT_RELOAD=0 (production): returns the startup-time
+    settings singleton immediately — zero overhead, config is stable.
+
+    When AUTHGATE_HOT_RELOAD=1 (default / dev): reads the raw file bytes on
+    every call.  The OS page cache keeps tiny files in memory so this costs
+    microseconds, not disk I/O.  YAML is only re-parsed when the bytes
+    differ from the last snapshot.  Falls back to the startup-time singleton
+    on any error.
+    """
+    if not _HOT_RELOAD:
+        return settings
+
+    global _reload_cache, _reload_snapshot
+
+    config_path = os.environ.get("AUTHGATE_CONFIG", "authgate.yaml")
+    try:
+        raw = Path(config_path).read_bytes()
+    except OSError:
+        return _reload_cache if _reload_cache is not None else settings
+
+    if _reload_cache is None or raw != _reload_snapshot:
+        try:
+            _reload_cache = _load_settings()
+            _reload_snapshot = raw
+            _reload_logger.info("Config reloaded from %s", config_path)
+        except Exception as exc:
+            _reload_logger.warning(
+                "Config reload failed (%s) — continuing with previous settings", exc
+            )
+
+    return _reload_cache if _reload_cache is not None else settings

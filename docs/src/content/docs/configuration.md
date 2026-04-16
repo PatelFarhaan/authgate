@@ -163,6 +163,93 @@ const theme = document.documentElement.getAttribute("data-theme") === "dark" ? "
 window.location.href = `https://auth.example.com/login?redirect_url=${redirectUrl}&theme=${theme}`;
 ```
 
+## Login page theming
+
+AuthGate supports light and dark themes on the built-in (and custom) login page. The active theme is resolved through a three-layer precedence system on every request.
+
+### Precedence (highest → lowest)
+
+| Priority | Source | Example |
+|----------|--------|---------|
+| 1 | `?theme=` query parameter | `?theme=dark` |
+| 2 | `app.defaultTheme` in `authgate.yaml` | `defaultTheme: light` |
+| 3 | OS / browser preference | `prefers-color-scheme: dark` |
+
+The built-in login template passes whichever theme wins to the `data-theme` attribute on `<html>`. When the theme is empty (OS preference), a small inline script reads `window.matchMedia("(prefers-color-scheme:dark)")` so each user's browser makes the call independently.
+
+### `app.defaultTheme`
+
+Controls the server-side default applied when no `?theme=` param is present.
+
+| Value | Behaviour |
+|-------|-----------|
+| `light` | All visitors see the light theme (unless they pass `?theme=dark`) |
+| `dark` | All visitors see the dark theme (unless they pass `?theme=light`) |
+| empty / omitted | Falls through to the visitor's OS preference |
+
+```yaml
+app:
+  defaultTheme: light      # or dark, or leave empty for OS preference
+```
+
+:::tip[Supporting users with different preferences]
+If your users have different theme preferences — or your app already tracks them — leave `defaultTheme` empty and pass the user's preference via the query parameter when redirecting to the login page:
+
+```javascript
+// Append the user's current theme to the AuthGate login URL
+const theme = getUserPreference(); // "light" | "dark"
+window.location.href =
+  `https://auth.example.com/login?redirect_url=${redirectUrl}&theme=${theme}`;
+```
+
+Each user sees their own theme; the server default never overrides it.
+:::
+
+### `?theme=` query parameter
+
+Accepted values: `light`, `dark`. Any other value is ignored and the server default applies.
+
+```
+https://auth.example.com/login?theme=dark
+https://auth.example.com/login?theme=light&redirect_url=https%3A%2F%2Fapp.example.com%2F
+```
+
+### Live reload in development
+
+In local dev, AuthGate re-reads `authgate.yaml` on every login page request. This means you can change `defaultTheme`, `accentColor`, `name`, or any other display setting and see the result immediately by refreshing the browser — no container restart required.
+
+```yaml
+# authgate.yaml — change this...
+app:
+  defaultTheme: dark
+  accentColor: "#ff6b6b"
+# ...then refresh /login — the new theme and colour are live instantly
+```
+
+Live reload is controlled by the `AUTHGATE_HOT_RELOAD` environment variable:
+
+| Value | Behaviour |
+|-------|-----------|
+| `1` (default) | Re-reads and re-parses `authgate.yaml` on each login page request when the file content has changed |
+| `0` | Config is locked at startup — zero per-request overhead |
+
+:::note[Production recommendation]
+Set `AUTHGATE_HOT_RELOAD=0` in production. Config changes there should go through a proper redeploy (rebuild the image or restart the container), not a live file edit. The deployment Docker Compose already sets this:
+
+```yaml
+# deployments/docker-compose/docker-compose.yml
+environment:
+  AUTHGATE_HOT_RELOAD: "0"
+```
+:::
+
+When hot reload is enabled, AuthGate logs whenever the config is reloaded or if a reload fails:
+
+```
+INFO  authgate.config: Config reloaded from authgate.yaml
+WARN  authgate.config: Config reload failed (invalid YAML) — continuing with previous settings
+```
+
 ## Kubernetes: ConfigMap + Secret
 
 For Kubernetes deployments, put the config in a ConfigMap and secrets in a Secret. The `$VAR` syntax bridges them.

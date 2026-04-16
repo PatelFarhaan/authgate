@@ -73,7 +73,10 @@ async def userinfo(request: Request):
         email=user.email,
         name=user.name,
         avatar_url=user.avatar_url,
-        provider=user.provider,
+        providers=[
+            p.provider
+            for p in sorted(user.providers, key=lambda p: p.linked_at, reverse=True)
+        ],
         created_at=user.created_at,
         last_login_at=user.last_login_at,
     )

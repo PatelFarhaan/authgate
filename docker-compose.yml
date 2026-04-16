@@ -68,7 +68,7 @@ configs:
         name: AuthGate
         tagline: Secure authentication for your apps
         accentColor: "#0060F0"
-        defaultTheme: light
+        defaultTheme:
 
       server:
         host: 0.0.0.0

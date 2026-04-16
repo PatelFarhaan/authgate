@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from app.config import settings
+from app.config import Settings, reload_settings, settings
 from app.database import Base, engine
 from app.jwt_handler import jwt_handler
 from app.oauth import PROVIDER_DISPLAY, get_enabled_providers, init_providers
@@ -79,15 +79,20 @@ async def jwks():
     return jwt_handler.get_jwks()
 
 
-def _build_login_context(request: Request):
+def _build_login_context(request: Request) -> tuple[dict, "Settings"]:
+    # Re-read display settings from disk on every request so that changes to
+    # authgate.yaml (theme, colours, logo, name) take effect immediately
+    # without restarting the container.
+    live = reload_settings()
+
     redirect_url = request.query_params.get("redirect_url", "")
     error = request.query_params.get("error", "")
     authenticated = request.query_params.get("authenticated", "")
     theme_param = request.query_params.get("theme", "")
     if theme_param in ("light", "dark"):
         theme = theme_param
-    elif settings.DEFAULT_THEME in ("light", "dark"):
-        theme = settings.DEFAULT_THEME
+    elif live.DEFAULT_THEME in ("light", "dark"):
+        theme = live.DEFAULT_THEME
     else:
         theme = ""  # "auto" — let the template handle it via prefers-color-scheme
 
@@ -106,22 +111,23 @@ def _build_login_context(request: Request):
     ]
 
     # Prefer local logo file served at /static/logo over external URL
-    if settings.APP_LOGO_PATH and os.path.isfile(settings.APP_LOGO_PATH):
+    if live.APP_LOGO_PATH and os.path.isfile(live.APP_LOGO_PATH):
         logo_url = "/static/logo"
     else:
-        logo_url = settings.APP_LOGO_URL
+        logo_url = live.APP_LOGO_URL
 
-    return {
+    ctx = {
         "request": request,
-        "app_name": settings.APP_NAME,
+        "app_name": live.APP_NAME,
         "app_logo_url": logo_url,
-        "app_tagline": settings.APP_TAGLINE,
-        "accent_color": settings.ACCENT_COLOR,
+        "app_tagline": live.APP_TAGLINE,
+        "accent_color": live.ACCENT_COLOR,
         "providers": provider_list,
         "error": error,
         "authenticated": authenticated,
         "theme": theme if theme in ("light", "dark") else "",
     }
+    return ctx, live
 
 
 def _render_custom_template(request: Request, filename: str, context: dict):
@@ -139,8 +145,8 @@ def _render_custom_template(request: Request, filename: str, context: dict):
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
-    ctx = _build_login_context(request)
-    custom_path = settings.CUSTOM_LOGIN_TEMPLATE
+    ctx, live = _build_login_context(request)
+    custom_path = live.CUSTOM_LOGIN_TEMPLATE
     if custom_path and os.path.isfile(custom_path):
         custom_dir = os.path.dirname(os.path.abspath(custom_path))
         custom_name = os.path.basename(custom_path)
@@ -152,7 +158,7 @@ async def login_page(request: Request):
 
 @app.get("/login{design_num}", response_class=HTMLResponse)
 async def login_variant(request: Request, design_num: int):
-    ctx = _build_login_context(request)
+    ctx, live = _build_login_context(request)
     resp = _render_custom_template(request, f"v{design_num}.html", ctx)
     if resp:
         return resp

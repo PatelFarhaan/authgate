@@ -66,9 +66,7 @@ class JWTHandler:
             .rstrip("=")
         )
 
-    def create_token(
-        self, user_id: str, email: str, name: str, provider: str
-    ) -> str:
+    def create_token(self, user_id: str, email: str, name: str, provider: str) -> str:
         now = datetime.now(timezone.utc)
         payload = {
             "sub": user_id,
@@ -107,12 +105,8 @@ class JWTHandler:
 
     def get_jwks(self) -> dict:
         numbers = self.public_key.public_numbers()
-        e = numbers.e.to_bytes(
-            (numbers.e.bit_length() + 7) // 8, byteorder="big"
-        )
-        n = numbers.n.to_bytes(
-            (numbers.n.bit_length() + 7) // 8, byteorder="big"
-        )
+        e = numbers.e.to_bytes((numbers.e.bit_length() + 7) // 8, byteorder="big")
+        n = numbers.n.to_bytes((numbers.n.bit_length() + 7) // 8, byteorder="big")
 
         return {
             "keys": [

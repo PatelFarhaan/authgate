@@ -1,0 +1,20 @@
+app:
+  name: AuthGate Test
+
+server:
+  secretKey: test-secret-key-for-tests-only-do-not-use-in-production
+  allowedRedirects:
+    - "http://localhost:3000*"
+
+database:
+  url: $DATABASE_URL
+
+jwt:
+  keysDir: /tmp/authgate-test-keys
+
+connectors:
+  - type: github
+    config:
+      clientID: test-github-client-id
+      clientSecret: test-github-client-secret
+      redirectPath: auth/github/callback

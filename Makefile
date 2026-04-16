@@ -1,4 +1,4 @@
-.PHONY: help app-up app-down app-logs docs-up docs-down docs-logs clean
+.PHONY: help app-up app-down app-logs docs-up docs-down docs-logs test-run test-down clean
 
 .DEFAULT_GOAL := help
 
@@ -8,18 +8,21 @@ help: ## Show available targets
 
 
 # ── AuthGate (app) ──────────────────────────────────────────────
-# Uses the root docker-compose.yml → pulls the published image,
-# bundled Postgres, zero-config. For local contributor builds, see
-# deployments/docker-compose/docker-compose.yml (run manually).
+# Uses deployments/docker-compose/docker-compose.yml which builds
+# the production image from source via the local Dockerfile.
+# The root docker-compose.yml (image-only, no build) is the
+# zero-install file for end users who pull from GHCR.
 
-app-up: ## Start AuthGate + Postgres (published image, localhost:8000)
-	docker compose up -d
+APP_COMPOSE := deployments/docker-compose/docker-compose.yml
+
+app-up: ## Build and start AuthGate + Postgres from source (localhost:8000)
+	docker compose -f $(APP_COMPOSE) up -d --build --force-recreate
 
 app-down: ## Stop AuthGate (volumes preserved — DB data survives)
-	docker compose down
+	docker compose -f $(APP_COMPOSE) down
 
 app-logs: ## Tail AuthGate container logs
-	docker compose logs -f authgate
+	docker compose -f $(APP_COMPOSE) logs -f authgate
 
 
 # ── Docs site ───────────────────────────────────────────────────
@@ -34,13 +37,23 @@ docs-logs: ## Tail docs container logs
 	cd docs && docker compose logs -f docs
 
 
+# ── E2E tests ───────────────────────────────────────────────────
+
+test-run: ## Run E2E tests (builds test image, starts Postgres, runs pytest)
+	docker compose -f docker-compose.test.yml run --rm --build test
+
+test-down: ## Stop and remove test containers and volumes
+	docker compose -f docker-compose.test.yml down -v
+
+
 # ── Nuclear clean ───────────────────────────────────────────────
 # Wipes containers, volumes, caches, local keys for BOTH stacks.
 # Postgres data and JWT keys are destroyed. Re-running app-up will
 # generate fresh keys and an empty DB.
 
 clean: ## Wipe everything — containers, volumes, caches, keys, lockfiles
-	docker compose down -v --remove-orphans 2>/dev/null || true
+	docker compose -f $(APP_COMPOSE) down -v --remove-orphans 2>/dev/null || true
+	docker compose -f docker-compose.test.yml down -v --remove-orphans 2>/dev/null || true
 	cd docs && docker compose down -v --remove-orphans 2>/dev/null || true
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name "*.pyc" -delete 2>/dev/null || true

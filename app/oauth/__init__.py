@@ -29,11 +29,7 @@ def init_providers() -> None:
     if _initialized:
         return
 
-    explicit = [
-        p.strip()
-        for p in settings.ENABLED_PROVIDERS.split(",")
-        if p.strip()
-    ]
+    explicit = [p.strip() for p in settings.ENABLED_PROVIDERS.split(",") if p.strip()]
 
     if explicit:
         _init_explicit(explicit)
@@ -77,9 +73,7 @@ def _init_explicit(requested: list[str]) -> None:
 
 
 def _init_autodetect() -> None:
-    logger.info(
-        "ENABLED_PROVIDERS not set — auto-detecting from credentials"
-    )
+    logger.info("ENABLED_PROVIDERS not set — auto-detecting from credentials")
     for name, (cls, id_attr, secret_attr) in PROVIDER_REGISTRY.items():
         client_id = getattr(settings, id_attr)
         client_secret = getattr(settings, secret_attr)
