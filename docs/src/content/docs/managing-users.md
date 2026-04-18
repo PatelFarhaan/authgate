@@ -26,7 +26,7 @@ Each user has an `is_active` boolean on the `users` table (default `true`). Set 
 - **Block future logins** at the OAuth callback — the user is redirected to `/login?error=account_disabled`
 - **Invalidate active sessions** — `/api/verify` returns `{ "valid": false }` and `/api/userinfo` returns `401` for disabled users, even if their JWT hasn't expired
 
-Toggle it directly in the database:
+Toggle it via the admin panel (see [Admin Panel](/authgate/admin-panel/)) or directly in the database:
 
 ```sql
 -- Disable a user
@@ -35,10 +35,6 @@ UPDATE users SET is_active = false WHERE email = 'user@example.com';
 -- Re-enable
 UPDATE users SET is_active = true WHERE email = 'user@example.com';
 ```
-
-:::note
-A dedicated admin API / UI for this is on the roadmap. Today, direct SQL is the only way to toggle the flag.
-:::
 
 ## Detecting first-time signups
 
@@ -62,7 +58,7 @@ The param is absent on subsequent logins.
 
 ## Viewing user data
 
-AuthGate doesn't ship an admin UI yet. To inspect users, query Postgres directly:
+Use the [Admin Panel](/authgate/admin-panel/) for a web UI, or query Postgres directly:
 
 ```sql
 -- List all users

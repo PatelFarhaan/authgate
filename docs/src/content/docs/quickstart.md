@@ -52,11 +52,22 @@ If you're iterating on AuthGate's code, use the contributor-facing compose at `d
 
 ```bash
 git clone https://github.com/gatesuite/authgate.git
-cd authgate/deployments/docker-compose
+cd authgate
+
+# 1. Create your local credentials file
+cp .env.example .env
+# Edit .env — set SECRET_KEY, ADMIN_SECRET_KEY, OAuth credentials
+
+# 2. Create your authgate.yaml (mounted into the container)
+cp authgate.example.yaml authgate.yaml
+# Edit authgate.yaml — set baseUrl, OAuth redirectPaths to match your registered callbacks
+
+# 3. Start the stack
+cd deployments/docker-compose
 docker compose up -d --build
 ```
 
-You'll need to create `authgate.yaml` at the repo root (copy from `authgate.example.yaml`) — this compose mounts it into the container so you can iterate on config without rebuilding.
+The compose reads credentials from `.env` and mounts `authgate.yaml` from the repo root — edit either file and restart without rebuilding.
 
 ## Without Docker
 
@@ -69,7 +80,7 @@ cp authgate.example.yaml authgate.yaml
 # Edit authgate.yaml with your database URL, secret key, and OAuth credentials
 
 # Set secrets as env vars (referenced via $VAR in authgate.yaml)
-export SECRET_KEY=$(python -c "import secrets; print(secrets.token_urlsafe(32))")
+export SECRET_KEY=$(openssl rand -hex 32)
 export DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/authgate
 export GITHUB_CLIENT_ID=your_client_id
 export GITHUB_CLIENT_SECRET=your_client_secret

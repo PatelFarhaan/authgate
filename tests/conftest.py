@@ -15,11 +15,14 @@ os.environ.setdefault(
     "postgresql+asyncpg://authgate:authgate@localhost:5432/authgate_test",
 )
 os.environ.setdefault("AUTHGATE_TEST", "1")
+os.environ.setdefault("ADMIN_USERNAME", "admin")
+os.environ.setdefault("ADMIN_PASSWORD", "testpassword")
 
 import pytest_asyncio  # noqa: E402
 from httpx import ASGITransport, AsyncClient  # noqa: E402
 from sqlalchemy import text  # noqa: E402
 
+from admin.main import app as admin_app  # noqa: E402
 from app.database import Base, async_session  # noqa: E402
 from app.database import engine as db_engine  # noqa: E402
 from app.jwt_handler import jwt_handler  # noqa: E402
@@ -119,3 +122,42 @@ async def inactive_user_token(inactive_user):
     return jwt_handler.create_token(
         inactive_user.id, inactive_user.email, inactive_user.name, "github"
     )
+
+
+# ---------------------------------------------------------------------------
+# Admin panel client fixtures
+# ---------------------------------------------------------------------------
+
+
+@pytest_asyncio.fixture
+async def admin_client():
+    # Ensure tables exist (same engine as main app — same DB).
+    async with db_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=admin_app), base_url="http://adminserver"
+    ) as c:
+        yield c
+        async with db_engine.begin() as conn:
+            await conn.execute(text("DELETE FROM user_providers"))
+            await conn.execute(text("DELETE FROM users"))
+
+
+@pytest_asyncio.fixture
+async def admin_authed_client(admin_client):
+    """Admin client with a valid session cookie already set."""
+    resp = await admin_client.post(
+        "/login",
+        data={"username": "admin", "password": "testpassword"},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 302, f"Admin login failed: {resp.status_code}"
+    yield admin_client
+
+
+@pytest_asyncio.fixture
+async def admin_db(admin_client):
+    """Raw DB session scoped to an admin test (tables guaranteed to exist)."""
+    async with async_session() as session:
+        yield session

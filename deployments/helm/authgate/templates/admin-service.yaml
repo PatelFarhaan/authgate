@@ -1,0 +1,18 @@
+{{- if .Values.admin.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "authgate.fullname" . }}-admin
+  labels:
+    {{- include "authgate.labels" . | nindent 4 }}
+    app.kubernetes.io/component: admin
+spec:
+  type: {{ .Values.admin.service.type }}
+  ports:
+    - port: {{ .Values.admin.service.port }}
+      targetPort: 8001
+      protocol: TCP
+  selector:
+    {{- include "authgate.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: admin
+{{- end }}

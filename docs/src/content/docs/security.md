@@ -40,7 +40,7 @@ There's no built-in key rollover (keeping old keys valid during a transition per
 The shipped `docker-compose.yml` uses a placeholder `SECRET_KEY` of `change-me-in-production-this-is-insecure`. **Override this in production.** Generate a proper secret with:
 
 ```bash
-openssl rand -base64 32
+openssl rand -hex 32
 ```
 
 The Postgres default credentials (`authgate:authgate`) are also insecure — they work for local dev but should be swapped for production deployments via managed Postgres (RDS, Cloud SQL, Neon, etc.) with proper credentials.

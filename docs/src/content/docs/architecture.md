@@ -38,6 +38,14 @@ authgate/
 │   │   └── health.py        # /health
 │   └── templates/
 │       └── login.html       # Default branded login page (Jinja2)
+├── admin/                   # Optional admin panel (separate container, port 8001)
+│   ├── main.py              # FastAPI app — dashboard, users, login/logout
+│   ├── auth.py              # HS256 session tokens, credential checks
+│   ├── models.py            # SQLAlchemy models (mirrors app/models.py — read-only)
+│   ├── database.py          # Async engine + session factory
+│   ├── templates/           # Jinja2 templates (login, dashboard, users)
+│   ├── Dockerfile           # Production container for admin
+│   └── requirements.txt
 ├── deployments/
 │   ├── docker-compose/      # Dev compose (builds from local Dockerfile)
 │   └── helm/authgate/       # Helm chart

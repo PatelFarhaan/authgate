@@ -28,9 +28,11 @@ FROM python:3.12-slim AS test
 WORKDIR /app
 
 COPY requirements.txt requirements-test.txt ./
-RUN pip install --no-cache-dir -r requirements.txt -r requirements-test.txt
+COPY admin/requirements.txt ./admin-requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt -r requirements-test.txt -r admin-requirements.txt
 
 COPY app/ ./app/
+COPY admin/ ./admin/
 COPY tests/ ./tests/
 COPY pytest.ini ./
 

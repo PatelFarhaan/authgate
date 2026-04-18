@@ -58,6 +58,7 @@ A common question — both handle OAuth, but they solve different problems:
 - **Beautiful Login UI** — dark theme, glassmorphism, fully brandable via YAML config
 - **JWT (RS256)** — asymmetric keys, auto-generated, JWKS endpoint for downstream verification
 - **PostgreSQL** — async, production-ready user storage
+- **Admin Panel** — optional companion UI to list, enable/disable, and delete users (port 8001, separate container)
 - **Fully Customizable** — app name, logo, colors, tagline, theme — all from a single YAML config
 - **Kubernetes-Ready** — Helm chart, ConfigMap/Secret separation, health checks
 - **Docker-First** — multi-stage build, ~50MB image, docker-compose for local dev
@@ -99,11 +100,22 @@ docker compose up -d
 
 ```bash
 git clone https://github.com/gatesuite/authgate.git
-cd authgate/deployments/docker-compose
+cd authgate
+
+# 1. Create your credentials file
+cp .env.example .env
+# Edit .env — set SECRET_KEY, ADMIN_SECRET_KEY, OAuth credentials
+
+# 2. Create your local authgate.yaml
+cp authgate.example.yaml authgate.yaml
+# Edit authgate.yaml — set baseUrl and OAuth redirectPaths to match your registered callbacks
+
+# 3. Start the stack
+cd deployments/docker-compose
 docker compose up -d --build
 ```
 
-This mounts your local `authgate.yaml` and builds the image from the local `Dockerfile` — useful for testing code changes.
+The compose reads credentials from `.env` and mounts `authgate.yaml` from the repo root — edit either without rebuilding.
 
 ### Without Docker
 
@@ -114,7 +126,7 @@ pip install -r requirements.txt
 cp authgate.example.yaml authgate.yaml
 # Edit authgate.yaml with your database URL, secret key, and OAuth credentials
 
-export SECRET_KEY=$(python -c "import secrets; print(secrets.token_urlsafe(32))")
+export SECRET_KEY=$(openssl rand -hex 32)
 export DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/authgate
 export GITHUB_CLIENT_ID=your_client_id
 export GITHUB_CLIENT_SECRET=your_client_secret
@@ -298,7 +310,7 @@ For Kubernetes deployments, put the config in a ConfigMap and secrets in a Secre
 
 ```bash
 kubectl create secret generic authgate-secrets \
-  --from-literal=SECRET_KEY="$(openssl rand -base64 32)" \
+  --from-literal=SECRET_KEY="$(openssl rand -hex 32)" \
   --from-literal=DATABASE_URL="postgresql+asyncpg://user:pass@host:5432/authgate" \
   --from-literal=GITHUB_CLIENT_ID="your-client-id" \
   --from-literal=GITHUB_CLIENT_SECRET="your-client-secret"
@@ -348,7 +360,7 @@ spec:
     spec:
       containers:
         - name: authgate
-          image: ghcr.io/farhaan/authgate:latest
+          image: ghcr.io/gatesuite/authgate:latest
           env:
             - name: AUTHGATE_CONFIG
               value: /etc/authgate/authgate.yaml
@@ -495,7 +507,7 @@ Use the public key to verify the JWT signature in your app without network calls
 | `/api/verify` | GET | Verify JWT — always `200 OK`, returns `{ valid, user }` |
 | `/api/userinfo` | GET | Get authenticated user profile — `401` if invalid/missing token |
 | `/.well-known/jwks.json` | GET | Public keys for JWT verification |
-| `/logout` | POST | Clear auth cookie |
+| `/logout` | GET | Clear auth cookie, redirect to `?redirect_url=...` |
 | `/health` | GET | Health check |
 
 **Authentication:** Pass token as `Authorization: Bearer <token>` header or via the `authgate_token` cookie.
@@ -521,7 +533,7 @@ UPDATE users SET is_active = false WHERE email = 'user@example.com';
 UPDATE users SET is_active = true WHERE email = 'user@example.com';
 ```
 
-A dedicated admin API / UI for this is on the roadmap.
+Use the admin panel (`make admin-up`, then open http://localhost:8001) to toggle users via the web UI, or toggle directly in the database with the SQL above.
 
 ### Upgrading from pre-`is_active` versions
 
@@ -555,7 +567,7 @@ docker compose up -d
 
 ```bash
 kubectl create secret generic authgate-secrets \
-  --from-literal=SECRET_KEY="$(openssl rand -base64 32)" \
+  --from-literal=SECRET_KEY="$(openssl rand -hex 32)" \
   --from-literal=DATABASE_URL="postgresql+asyncpg://user:pass@host:5432/authgate" \
   --from-literal=GITHUB_CLIENT_ID="your-client-id" \
   --from-literal=GITHUB_CLIENT_SECRET="your-client-secret"
@@ -568,14 +580,14 @@ kubectl create secret generic authgate-secrets \
 **Step 2: Install the chart**
 
 ```bash
-helm install authgate oci://ghcr.io/farhaan/charts/authgate \
+helm install authgate oci://ghcr.io/gatesuite/charts/authgate \
   --set existingSecret=authgate-secrets
 ```
 
 Or use a `values.yaml` override:
 
 ```bash
-helm install authgate oci://ghcr.io/farhaan/charts/authgate -f my-values.yaml
+helm install authgate oci://ghcr.io/gatesuite/charts/authgate -f my-values.yaml
 ```
 
 To install from source instead:
@@ -590,12 +602,15 @@ helm install authgate ./deployments/helm/authgate -f my-values.yaml
 
 | Command | Description |
 |---------|-------------|
-| `make dev` | Start dev server with hot-reload |
-| `make run` | Start production server |
-| `make docker-up` | Build and start via Docker Compose |
-| `make docker-down` | Stop containers |
-| `make docker-logs` | Tail container logs |
-| `make clean` | Remove `__pycache__` artifacts |
+| `make app-up` | Build and start AuthGate + Postgres from source |
+| `make app-down` | Stop AuthGate (volumes preserved) |
+| `make app-logs` | Tail AuthGate container logs |
+| `make admin-up` | Build and start the admin panel only (port 8001) |
+| `make admin-down` | Stop the admin panel container |
+| `make admin-logs` | Tail admin panel container logs |
+| `make docs-up` | Start docs dev server (port 4321) |
+| `make test-run` | Run E2E tests |
+| `make clean` | Wipe containers, volumes, caches, and keys |
 
 ---
 
@@ -704,29 +719,35 @@ sequenceDiagram
 authgate/
 ├── app/
 │   ├── main.py              # FastAPI entrypoint
-│   ├── config.py             # YAML config loader
-│   ├── database.py           # Async SQLAlchemy engine
-│   ├── models.py             # User model
-│   ├── schemas.py            # Pydantic response schemas
-│   ├── jwt_handler.py        # RS256 JWT + JWKS + state tokens
+│   ├── config.py            # YAML config loader with $VAR env-var resolution
+│   ├── database.py          # Async SQLAlchemy engine + session factory
+│   ├── models.py            # User + UserProvider SQLAlchemy models
+│   ├── schemas.py           # Pydantic response schemas
+│   ├── jwt_handler.py       # RS256 JWT + JWKS + state tokens
 │   ├── oauth/
-│   │   ├── base.py           # Abstract OAuth provider
-│   │   ├── github.py         # GitHub OAuth
-│   │   ├── google.py         # Google OAuth
-│   │   └── gitlab.py         # GitLab OAuth
+│   │   ├── base.py          # Abstract OAuth provider
+│   │   ├── github.py        # GitHub OAuth
+│   │   ├── google.py        # Google OAuth
+│   │   └── gitlab.py        # GitLab OAuth
 │   ├── routes/
-│   │   ├── auth.py           # Login, callback, logout
-│   │   ├── api.py            # Verify, userinfo endpoints
-│   │   └── health.py         # Health check
+│   │   ├── auth.py          # Login, callback, logout
+│   │   ├── api.py           # Verify, userinfo endpoints
+│   │   └── health.py        # Health check
 │   └── templates/
-│       └── login.html        # Branded login page (Jinja2)
+│       └── login.html       # Branded login page (Jinja2)
+├── admin/                   # Optional admin panel (separate container, port 8001)
+│   ├── main.py              # FastAPI app — dashboard, users, login/logout
+│   ├── auth.py              # HS256 session tokens, credential checks
+│   ├── models.py            # SQLAlchemy models (read-only, mirrors app/models.py)
+│   ├── database.py          # Async engine + session factory
+│   ├── templates/           # Jinja2 templates (login, dashboard, users)
+│   └── Dockerfile           # Production container for admin
 ├── deployments/
-│   ├── docker-compose/       # Local dev setup
-│   └── helm/authgate/        # Kubernetes Helm chart
-├── .github/workflows/        # CI/CD pipeline
-├── Dockerfile                # Production container
-├── authgate.example.yaml     # Configuration reference
-├── authgate.example.yaml     # YAML configuration reference
+│   ├── docker-compose/      # Dev compose (builds from local Dockerfile)
+│   └── helm/authgate/       # Kubernetes Helm chart
+├── .github/workflows/       # CI/CD pipeline
+├── Dockerfile               # Production container
+├── authgate.example.yaml    # Configuration reference
 └── requirements.txt
 ```
 

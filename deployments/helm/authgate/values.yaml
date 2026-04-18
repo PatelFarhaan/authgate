@@ -102,6 +102,42 @@ containerSecurityContext:
     drop:
       - ALL
 
+# -- Optional admin panel. Deploys a separate container at port 8001.
+# Reads from the same DATABASE_URL — no extra database required.
+admin:
+  enabled: false
+
+  image:
+    repository: ghcr.io/gatesuite/authgate-admin
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  # -- Name of an existing K8s Secret with admin credentials.
+  # Required keys: ADMIN_USERNAME, ADMIN_PASSWORD, DATABASE_URL
+  # Optional: ADMIN_SECRET_KEY (falls back to SECRET_KEY from existingSecret)
+  # Leave empty to reuse the main existingSecret (which already has DATABASE_URL).
+  existingSecret: ""
+
+  service:
+    type: ClusterIP
+    port: 8001
+
+  ingress:
+    enabled: false
+    host: admin.example.com
+    className: ""
+    annotations: {}
+    tls: false
+    tlsSecretName: ""
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
 topologySpreadConstraints:
   enabled: true
   maxSkew: 1

@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
       target: production
     ports:
-      - "8000:8000"
+      - "80:8000"
     env_file:
       - ../../.env
     environment:
@@ -18,6 +18,26 @@ services:
     volumes:
       - authgate-keys:/app/keys
       - ../../authgate.yaml:/app/authgate.yaml:ro
+    restart: unless-stopped
+
+  admin:
+    image: ghcr.io/gatesuite/authgate-admin:latest
+    build:
+      context: ../..
+      dockerfile: admin/Dockerfile
+      target: production
+    ports:
+      - "8001:8001"
+    env_file:
+      - ../../.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://authgate:authgate@postgres:5432/authgate
+      # ADMIN_USERNAME defaults to "admin" if unset
+      # ADMIN_PASSWORD must be set in .env — empty value disables login
+      # ADMIN_SECRET_KEY is optional; falls back to SECRET_KEY if unset
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
 
   postgres:

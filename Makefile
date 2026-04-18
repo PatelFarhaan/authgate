@@ -1,4 +1,4 @@
-.PHONY: help app-up app-down app-logs docs-up docs-down docs-logs test-run test-down clean
+.PHONY: help app-up app-down app-logs admin-up admin-down admin-logs docs-up docs-down docs-logs test-run test-down clean
 
 .DEFAULT_GOAL := help
 
@@ -23,6 +23,15 @@ app-down: ## Stop AuthGate (volumes preserved — DB data survives)
 
 app-logs: ## Tail AuthGate container logs
 	docker compose -f $(APP_COMPOSE) logs -f authgate
+
+admin-up: ## Build and start the admin panel only (localhost:8001)
+	docker compose -f $(APP_COMPOSE) up -d --build --force-recreate admin
+
+admin-down: ## Stop the admin panel container (leaves AuthGate and Postgres running)
+	docker compose -f $(APP_COMPOSE) stop admin
+
+admin-logs: ## Tail admin panel container logs
+	docker compose -f $(APP_COMPOSE) logs -f admin
 
 
 # ── Docs site ───────────────────────────────────────────────────

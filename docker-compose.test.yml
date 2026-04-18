@@ -10,6 +10,7 @@ services:
       AUTHGATE_CONFIG: tests/authgate.test.yaml
       DATABASE_URL: postgresql+asyncpg://authgate:authgate@postgres:5432/authgate_test
       AUTHGATE_TEST: "1"
+      SECRET_KEY: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
   postgres:
     image: postgres:16-alpine

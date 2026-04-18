@@ -47,6 +47,7 @@ export default defineConfig({
             { label: 'OAuth Providers', slug: 'providers' },
             { label: 'Integration Guide', slug: 'integration' },
             { label: 'Managing Users', slug: 'managing-users' },
+            { label: 'Admin Panel', slug: 'admin-panel' },
           ],
         },
         {

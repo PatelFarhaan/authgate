@@ -34,7 +34,7 @@ docker compose up -d
 
 ```bash
 kubectl create secret generic authgate-secrets \
-  --from-literal=SECRET_KEY="$(openssl rand -base64 32)" \
+  --from-literal=SECRET_KEY="$(openssl rand -hex 32)" \
   --from-literal=DATABASE_URL="postgresql+asyncpg://user:pass@host:5432/authgate" \
   --from-literal=GITHUB_CLIENT_ID="your-client-id" \
   --from-literal=GITHUB_CLIENT_SECRET="your-client-secret"
@@ -81,7 +81,7 @@ The Helm chart ships with sensible production defaults:
 | Value | Default | Purpose |
 |---|---|---|
 | `image.tag` | `latest` | Image version (override for reproducibility) |
-| `replicaCount` | `2` | Minimum replicas (HPA scales up from here) |
+| `replicaCount` | `1` | Minimum replicas (HPA scales up from here) |
 | `autoscaling.maxReplicas` | `10` | Max replicas |
 | `existingSecret` | `""` | Name of the pre-created Secret with credentials |
 | `ingress.enabled` | `false` | Enable Ingress (set host / TLS as needed) |
@@ -93,7 +93,7 @@ See the chart's `values.yaml` for the full list.
 
 Before going live:
 
-- [ ] **Strong `SECRET_KEY`** — use `openssl rand -base64 32`, never the default
+- [ ] **Strong `SECRET_KEY`** — use `openssl rand -hex 32`, never the default
 - [ ] **HTTPS only** — set `jwt.cookieSecure: true` in config
 - [ ] **Correct `baseUrl`** — AuthGate needs to know its public URL for OAuth redirect construction
 - [ ] **Restrictive `allowedRedirects`** — match only your actual app URLs, no wildcards like `http://*`
