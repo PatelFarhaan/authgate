@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.0.2](https://github.com/gatesuite/authgate/compare/v3.0.1...v3.0.2) (2026-04-18)
+
+
+### Bug Fixes
+
+* **docs:** fix login screenshot alignment on landing page ([c91618b](https://github.com/gatesuite/authgate/commit/c91618b350dba8f14d6088dcaf84a3a169e67801))
+* **docs:** restore npm install and screenshot alignment on landing page ([e9e9c49](https://github.com/gatesuite/authgate/commit/e9e9c497a615e4d8525cf2a78cdb922652e5810b))
+
 ## [3.0.1](https://github.com/gatesuite/authgate/compare/v3.0.0...v3.0.1) (2026-04-18)
 
 
