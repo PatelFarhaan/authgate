@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1](https://github.com/gatesuite/authgate/compare/v3.0.0...v3.0.1) (2026-04-18)
+
+
+### Bug Fixes
+
+* CI test environment and pre-commit YAML exclusion for Helm templates ([bdd74cd](https://github.com/gatesuite/authgate/commit/bdd74cd07afe879ac2e71f82bb8808e0a996feb2))
+
 ## [3.0.0](https://github.com/gatesuite/authgate/compare/v2.1.0...v3.0.0) (2026-04-18)
 
 
