@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.0.0](https://github.com/gatesuite/authgate/compare/v2.1.0...v3.0.0) (2026-04-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* Admin panel enforces a minimum SECRET_KEY length of 64 characters (RFC 7518, HS256). Deployments with a short key will see the admin container refuse to start:
+
+### Features
+
+* add admin panel with user management UI ([f29ed4b](https://github.com/gatesuite/authgate/commit/f29ed4b9453055ed947ec168bf1ce435f7887732))
+
 ## [2.1.0](https://github.com/gatesuite/authgate/compare/v2.0.0...v2.1.0) (2026-04-16)
 
 
